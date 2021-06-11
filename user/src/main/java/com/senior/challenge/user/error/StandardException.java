@@ -4,20 +4,15 @@ package com.senior.challenge.user.error;
 import com.google.common.base.Throwables;
 import com.senior.challenge.user.error.bean.Message;
 
+import javax.persistence.PersistenceException;
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * This is the standard error class to all business domain classes.
  */
 public class StandardException extends Exception {
-    /**
-     * This field represents the expected HTTP status to be presented to the controller and this will be
-     * potentially presented to the user interface.
-     */
-    private int httpStatus;
 
-    /**
-     * The error code, standardized to be, always the name "ERROR", followed by the colon (":") and of
-     * an UUID which identifies uniquely the error.
-     */
+    private int httpStatus;
     private String code;
 
     public StandardException(String code, int httpStatus, String message) {

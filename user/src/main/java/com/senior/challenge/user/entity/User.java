@@ -1,15 +1,17 @@
 package com.senior.challenge.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.senior.challenge.user.dto.UserDTO;
 import com.senior.challenge.user.persistence.Creatable;
-import lombok.*;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Entity
@@ -33,12 +35,16 @@ public class User extends Creatable {
     private Integer tries;
 
     @NotNull(message = "E-mail é obrigatório")
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String email;
 
     @NotNull(message = "Telefone é obrigatório")
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String phone;
+
+    @NotNull(message = "Documento é obrigatório")
+    @Column(unique = true, nullable = false)
+    private String document;
 
     @NotNull(message = "Status é obrigatório")
     @Column(nullable = false)
@@ -47,6 +53,7 @@ public class User extends Creatable {
     @Column(name = "updated_at")
     private Date updatedAt;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<UserRole> userRoles;
 

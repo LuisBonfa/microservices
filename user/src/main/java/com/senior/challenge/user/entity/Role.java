@@ -1,16 +1,14 @@
 package com.senior.challenge.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.senior.challenge.user.dto.RoleDTO;
-import com.senior.challenge.user.dto.UserDTO;
 import com.senior.challenge.user.persistence.Creatable;
 import lombok.Data;
 import org.modelmapper.ModelMapper;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Entity
@@ -25,6 +23,7 @@ public class Role extends Creatable {
     @Column(nullable = false)
     private String status;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<UserRole> userRoles;
 
