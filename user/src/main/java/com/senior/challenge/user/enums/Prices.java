@@ -4,10 +4,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum Prices {
-    WEEKDAY_ROOM_PRICE(1,120),
-    WEEKEND_ROOM_PRICE(2,150),
-    WEEKDAY_GARAGE_PRICE(3,15),
-    WEEKEND_GARAGE_PRICE(4,20);
+    ROOM_WEEKDAY(1,120),
+    ROOM_WEEKEND(2,150),
+    GARAGE_WEEKDAY(3,15),
+    GARAGE_WEEKEND(4,20),
+    COKE(5, 6),
+    CHOCOLATE(6, 8),
+    WATER(7, 4),
+    PEANUTS(8, 5);
 
     private int id;
     private int price;

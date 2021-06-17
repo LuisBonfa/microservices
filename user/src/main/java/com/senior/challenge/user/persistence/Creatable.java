@@ -1,5 +1,6 @@
 package com.senior.challenge.user.persistence;
 
+
 import lombok.Data;
 
 import javax.persistence.Column;

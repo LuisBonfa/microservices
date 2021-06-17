@@ -20,16 +20,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final JwtRequestFilter jwtRequestFilter;
+    private final AuthorizationFilter authorizationFilter;
     private final UserDetailsService jwtUserDetailsService;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAuthenticationProvider customAuthenticationProvider;
 
     @Autowired
-    public WebSecurityConfig(JwtRequestFilter jwtRequestFilter, UserDetailsService jwtUserDetailsService, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, CustomAuthenticationProvider customAuthenticationProvider) {
-        this.jwtRequestFilter = jwtRequestFilter;
+    public WebSecurityConfig(AuthorizationFilter authorizationFilter, UserDetailsService jwtUserDetailsService, CustomAuthenticationEntryPoint customAuthenticationEntryPoint, CustomAuthenticationProvider customAuthenticationProvider) {
+        this.authorizationFilter = authorizationFilter;
         this.jwtUserDetailsService = jwtUserDetailsService;
-        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
         this.customAuthenticationProvider = customAuthenticationProvider;
     }
 
@@ -58,13 +58,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable()
-// Não cheque essas requisições
-                .authorizeRequests().antMatchers("/login","/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**").permitAll().
-// Qualquer outra requisição deve ser checada
-        anyRequest().authenticated().and().
-                exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
+                .authorizeRequests().antMatchers("/login", "/v2/api-docs", "/configuration/ui",
+                    "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**").permitAll().
+                anyRequest().authenticated().and().
+                exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint).and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
 }

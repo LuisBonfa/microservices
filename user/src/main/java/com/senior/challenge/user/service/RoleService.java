@@ -1,12 +1,11 @@
 package com.senior.challenge.user.service;
 
 import com.senior.challenge.user.entity.Role;
-import com.senior.challenge.user.error.StandardException;
 import com.senior.challenge.user.repository.RoleRepository;
-import com.senior.challenge.user.service.error.RoleSaveFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,12 +18,9 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
-    public Role save(Role newRole) throws StandardException {
+    public Role save(Role newRole) {
         Optional<Role> role = roleRepository.findByName(newRole.getName());
-        if(!role.isPresent())
             return roleRepository.save(newRole);
-        else
-            throw new RoleSaveFailureException("Error Saving Role");
     }
 
     public Optional<Role> findByName(String name) {
@@ -33,5 +29,9 @@ public class RoleService {
             return role;
         else
             return null;
+    }
+
+    public List<Role> findAll() {
+        return roleRepository.findAll();
     }
 }

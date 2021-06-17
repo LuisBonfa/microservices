@@ -1,41 +1,62 @@
 package com.senior.challenge.user.service;
 
-import com.netflix.discovery.converters.Auto;
+import com.senior.challenge.user.entity.User;
+import com.senior.challenge.user.repository.UserRepository;
 import com.senior.challenge.user.security.JwtTokenUtil;
-import com.senior.challenge.user.security.JwtUserDetailsService;
-import com.senior.challenge.user.security.dto.JwtResponse;
+import com.senior.challenge.user.utils.Security;
+import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
-public class AuthenticationService {
+public class AuthenticationService implements UserDetailsService {
 
     private final JwtTokenUtil jwtTokenUtil;
-    private final JwtUserDetailsService userDetailsService;
-    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
 
     @Autowired
-    public AuthenticationService(JwtTokenUtil jwtTokenUtil, JwtUserDetailsService userDetailsService, AuthenticationManager authenticationManager) {
+    public AuthenticationService(JwtTokenUtil jwtTokenUtil, UserRepository userRepository) {
         this.jwtTokenUtil = jwtTokenUtil;
-        this.userDetailsService = userDetailsService;
-        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
     }
 
-    public JwtResponse authenticate(String username, String password) throws Exception {
+    @Override
+    public UserDetails loadUserByUsername(String name) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        } catch (DisabledException e) {
-            throw new Exception("USER_DISABLED", e);
-        } catch (BadCredentialsException e) {
-            throw new Exception("INVALID_CREDENTIALS", e);
-        }
+            Optional<User> user = userRepository.findByName(name);
+            if (user.isEmpty())
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        return new JwtResponse(jwtTokenUtil.generateToken(userDetails));
+            return new org.springframework.security.core.userdetails.User(user.get().getName(), user.get().getPassword(),
+                    new ArrayList<>());
+
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error loading User", e);
+        }
+    }
+
+    public Authentication verifyUserCredentials(String name, String password) {
+        try {
+            Optional<User> user = userRepository.findByName(name);
+            boolean passwordVerify = Security.validate(password, user.get().getPassword());
+            if (!passwordVerify)
+                throw new NotFoundException("User Not Found");
+
+            return new UsernamePasswordAuthenticationToken(name, password);
+
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error Verifying your Identity", e);
+        }
     }
 }

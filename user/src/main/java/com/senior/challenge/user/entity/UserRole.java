@@ -1,7 +1,6 @@
 package com.senior.challenge.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.senior.challenge.user.persistence.Creatable;
 import lombok.Data;
 

@@ -1,11 +1,10 @@
 package com.senior.challenge.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.senior.challenge.user.dto.UserDTO;
 import com.senior.challenge.user.persistence.Creatable;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
 import javax.persistence.*;
@@ -56,6 +55,10 @@ public class User extends Creatable {
     @JsonManagedReference
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<UserRole> userRoles;
+
+    @JsonBackReference
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Booking> userBookings;
 
     public static User create(UserDTO userDto) {
         return new ModelMapper().map(userDto, User.class);

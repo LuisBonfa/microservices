@@ -1,9 +1,6 @@
 package com.senior.challenge.user.controller;
 
-import com.senior.challenge.user.controller.error.CreateUserFailureException;
-import com.senior.challenge.user.controller.error.UpdateUserFailureException;
 import com.senior.challenge.user.dto.UserDTO;
-import com.senior.challenge.user.error.StandardException;
 import com.senior.challenge.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,25 +24,17 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<?> update(@PathVariable String userId, @RequestBody UserDTO userDTO) throws Throwable {
+    public ResponseEntity<?> update(@PathVariable String userId, @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.update(userDTO, UUID.fromString(userId)));
     }
 
     @GetMapping("/{search}")
     public ResponseEntity<?> findByMultipleChoices(@PathVariable String search) {
-        try {
-            return ResponseEntity.ok(userService.findByMultipleChoices(search));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getCause());
-        }
+        return ResponseEntity.ok(userService.findByDocumentOrPhoneOrNameContaining(search));
     }
 
     @GetMapping
     public ResponseEntity<?> findAll() {
-        try {
-            return ResponseEntity.ok(userService.findAll());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getCause());
-        }
+        return ResponseEntity.ok(userService.findAll());
     }
 }

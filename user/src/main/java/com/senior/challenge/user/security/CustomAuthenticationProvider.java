@@ -1,6 +1,6 @@
 package com.senior.challenge.user.security;
 
-import com.senior.challenge.user.repository.UserRepository;
+import com.senior.challenge.user.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,20 +11,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-    private final UserRepository userRepository;
+    private final AuthenticationService authenticationService;
 
     @Autowired
-    public CustomAuthenticationProvider(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public CustomAuthenticationProvider(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String name = authentication.getName();
-        String password = authentication.getCredentials().toString();
-
-        // Your custom authentication logic here
-        return new UsernamePasswordAuthenticationToken(name, password);
+        var password = authentication.getCredentials().toString();
+        return authenticationService.verifyUserCredentials(name, password);
     }
 
     @Override

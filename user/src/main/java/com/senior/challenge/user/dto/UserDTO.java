@@ -20,5 +20,4 @@ public class UserDTO {
     private String phone;
     private String document;
     private List<String> roles;
-
 }
