@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.senior.challenge.user.dto.UserDTO;
 import com.senior.challenge.user.persistence.Creatable;
+import com.senior.challenge.user.utils.Security;
 import lombok.Data;
 import org.modelmapper.ModelMapper;
 
@@ -11,6 +12,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -62,5 +64,21 @@ public class User extends Creatable {
 
     public static User create(UserDTO userDto) {
         return new ModelMapper().map(userDto, User.class);
+    }
+
+    public static User generateUserForTesting(String alias, String document, String email, String name, String phone, String password) {
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setAlias(alias);
+        user.setDocument(document);
+        user.setEmail(email);
+        user.setName(name);
+        user.setPhone(phone);
+        user.setCreationDate();
+        user.setTries(0);
+        user.setPassword(Security.hash(password));
+        user.setStatus("enabled");
+
+        return user;
     }
 }

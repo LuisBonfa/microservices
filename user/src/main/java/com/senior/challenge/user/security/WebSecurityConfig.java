@@ -59,11 +59,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable()
                 .authorizeRequests().antMatchers("/login", "/v2/api-docs", "/configuration/ui",
-                    "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**").permitAll().
+                    "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/swagger-ui/**", "/webjars/**").permitAll().
                 anyRequest().authenticated().and().
                 exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint).and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         httpSecurity.addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class);
     }
-
 }

@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -13,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class UserDTO {
 
+    private UUID id;
     private String name;
     private String password;
     private String alias;

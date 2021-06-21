@@ -6,7 +6,6 @@ import com.senior.challenge.user.entity.Bill;
 import com.senior.challenge.user.entity.Booking;
 import com.senior.challenge.user.entity.User;
 import com.senior.challenge.user.enums.BookingStatus;
-import com.senior.challenge.user.persistence.DateTreatment;
 import com.senior.challenge.user.repository.BookingRepository;
 import com.senior.challenge.user.repository.UserRepository;
 import com.senior.challenge.user.utils.VerifyDtoFields;
@@ -16,31 +15,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.PersistenceException;
-import java.text.ParseException;
 import java.util.*;
 
 @Service
-public class BookingService extends DateTreatment {
+public class BookingService{
 
     private final BookingRepository bookingRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final BillService billService;
 
     @Autowired
-    public BookingService(BookingRepository bookingRepository, UserRepository userRepository, BillService billService) {
+    public BookingService(BookingRepository bookingRepository, UserService userService, BillService billService) {
         this.bookingRepository = bookingRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.billService = billService;
     }
 
     public Booking save(BookingDTO bookingDTO) {
         try {
-            Optional<User> user = userRepository.findById(bookingDTO.getUserId());
+            User user = userService.findById(bookingDTO.getUserId());
 
-            if (user.isEmpty())
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found");
-
-            List<Booking> bookingCreated = bookingRepository.findRegisteredBooking(user.get(), bookingDTO.getBegin(),
+            List<Booking> bookingCreated = bookingRepository.findRegisteredBooking(user, bookingDTO.getBegin(),
                     bookingDTO.getEnd());
 
             if (!bookingCreated.isEmpty())
@@ -49,7 +44,7 @@ public class BookingService extends DateTreatment {
 
             var booking = Booking.create(bookingDTO);
             booking.setId(null);
-            booking.setUser(user.get());
+            booking.setUser(user);
             booking.setBegin(bookingDTO.getBegin());
             booking.setEnd(bookingDTO.getEnd());
             booking.setGarage(bookingDTO.getGarage());
@@ -121,7 +116,7 @@ public class BookingService extends DateTreatment {
             if (booking.isEmpty())
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking Not Found");
 
-            return billService.calculateBill(booking.get(), productsDTO);
+            return billService.calculateBillAndSave(booking.get(), productsDTO.getProducts());
 
         } catch (PersistenceException pe) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error checking out booking", pe);
@@ -144,7 +139,6 @@ public class BookingService extends DateTreatment {
                 bookingRepository.save(bookingUpdated);
                 return bookingUpdated;
             });
-
 
             return booking.get();
 

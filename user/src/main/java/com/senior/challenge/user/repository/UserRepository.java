@@ -16,6 +16,4 @@ public interface UserRepository extends JpaRepository<User, UUID>{
     Optional<User> findByName(@Param("name") String name);
 
     List<User> findByDocumentOrPhoneOrNameContaining(@Param("document") String document, @Param("phone") String phone, @Param("name") String name);
-
-    List<User> findByNameContaining(@Param("name") String name);
 }

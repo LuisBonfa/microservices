@@ -1,6 +1,7 @@
 package com.senior.challenge.user.controller;
 
 import com.senior.challenge.user.dto.UserDTO;
+import com.senior.challenge.user.entity.User;
 import com.senior.challenge.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

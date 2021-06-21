@@ -9,12 +9,16 @@ import com.senior.challenge.user.repository.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.util.UUID;
 
+@Profile("!test")
 @Component
 public class InitializationControl implements ApplicationRunner {
 

@@ -9,10 +9,11 @@ import org.modelmapper.ModelMapper;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Entity
-@Table(name="role")
+@Table(name = "role")
 public class Role extends Creatable {
 
     @NotNull(message = "Nome do cargo é obrigatório")
@@ -29,5 +30,15 @@ public class Role extends Creatable {
 
     public static Role create(RoleDTO roleDTO) {
         return new ModelMapper().map(roleDTO, Role.class);
+    }
+
+    public static Role generateRoleForTesting(String name) {
+        Role role = new Role();
+        role.setId(UUID.randomUUID());
+        role.setName(name);
+        role.setCreationDate();
+        role.setStatus("enabled");
+
+        return role;
     }
 }

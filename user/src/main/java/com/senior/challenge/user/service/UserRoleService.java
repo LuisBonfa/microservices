@@ -6,8 +6,11 @@ import com.senior.challenge.user.entity.UserRole;
 import com.senior.challenge.user.repository.RoleRepository;
 import com.senior.challenge.user.repository.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.PersistenceException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,27 +19,47 @@ import java.util.Optional;
 public class UserRoleService {
 
     private final UserRoleRepository userRoleRepository;
-    private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
     @Autowired
-    public UserRoleService(UserRoleRepository userRoleRepository, RoleRepository roleRepository) {
+    public UserRoleService(UserRoleRepository userRoleRepository, RoleService roleService) {
         this.userRoleRepository = userRoleRepository;
-        this.roleRepository = roleRepository;
+        this.roleService = roleService;
+    }
+
+    public UserRole save(UserRole userRole) {
+        try {
+            userRole.setCreationDate();
+            userRoleRepository.save(userRole);
+
+            return userRole;
+
+        } catch (PersistenceException pe) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error saving UserRole", pe);
+        }
     }
 
 
-    public List<UserRole> loadUserRolesFromUserDTO(List<String> roles, User user){
-        List<UserRole> userRoles = new ArrayList<>();
-        for(String name: roles){
-            Optional<Role> role = roleRepository.findByName(name);
-            if(role.isPresent()){
+    public List<UserRole> loadRolesAndSave(List<String> roles, User user) {
+        try {
+            List<UserRole> userRoles = new ArrayList<>();
+            for (String name : roles) {
+                Role role = roleService.findByName(name);
+
                 UserRole userRole = new UserRole();
                 userRole.setCreationDate();
-                userRole.setRole(role.get());
+                userRole.setRole(role);
                 userRole.setUser(user);
+                userRole.setCreationDate();
+
+                userRoleRepository.save(userRole);
                 userRoles.add(userRole);
             }
+
+            return userRoles;
+
+        } catch (PersistenceException pe) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error loading roles from data", pe);
         }
-        return userRoles;
     }
 }

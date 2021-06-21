@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public class VerifyDtoFields {
 
-    private VerifyDtoFields(){
+    private VerifyDtoFields() {
     }
 
     public static void verifyNullAndAddToObject(Object dto, Object entity) {
@@ -17,12 +17,10 @@ public class VerifyDtoFields {
             String setMethod = "set" + main;
             if (type.equals("get")) {
                 try {
-                    if (Optional.ofNullable(method.invoke(dto)).isPresent()) {
-                        var entityMethod = entity.getClass().getDeclaredMethod(setMethod, method.getReturnType());
-                        entityMethod.invoke(entity, method.invoke(dto));
-                    }
+                    var entityMethod = entity.getClass().getDeclaredMethod(setMethod, method.getReturnType());
+                    entityMethod.invoke(entity, method.invoke(dto));
                 } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                    e.printStackTrace();
+
                 }
             }
         }

@@ -1,11 +1,10 @@
 package com.senior.challenge.user.service;
 
-import com.senior.challenge.user.dto.BillDTO;
-import com.senior.challenge.user.dto.ProductsDTO;
 import com.senior.challenge.user.entity.Bill;
 import com.senior.challenge.user.entity.Booking;
 import com.senior.challenge.user.enums.Prices;
 import com.senior.challenge.user.repository.BillRepository;
+import com.senior.challenge.user.repository.BookingRepository;
 import com.senior.challenge.user.utils.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,21 +12,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.PersistenceException;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
 public class BillService {
 
     private final BillRepository billRepository;
+    private final BookingRepository bookingRepository;
 
     @Autowired
-    public BillService(BillRepository billRepository) {
+    public BillService(BillRepository billRepository, BookingRepository bookingRepository) {
         this.billRepository = billRepository;
+        this.bookingRepository = bookingRepository;
     }
 
-    public Bill calculateBill(Booking booking, ProductsDTO productsDTO) {
+    public Bill calculateBillAndSave(Booking booking, Map<String, Integer> products) {
 
         // Validar quantas diárias e quantas são em dias de semana e finais de semana
         // Validar
@@ -35,17 +35,18 @@ public class BillService {
         try {
             var begin = Calendar.getInstance();
             var end = Calendar.getInstance();
-            var bill = new BillDTO();
+
+            var bill = new Bill();
 
             var garagePrice = 0.0;
             var dailiesPrice = 0.0;
-            final double[] productsPrice = {0.0};
 
             begin.setTime(booking.getBegin());
             end.setTime(booking.getEnd());
 
             long time = booking.getEnd().getTime() - booking.getBegin().getTime();
             long days = TimeUnit.DAYS.convert(time, TimeUnit.MILLISECONDS);
+
 
             for (var i = 0; i < days; i++) {
                 if (Validator.verifyWeekend(begin)) {
@@ -59,44 +60,80 @@ public class BillService {
                 begin.add(Calendar.DAY_OF_WEEK, 1);
             }
 
-            begin.setTime(booking.getBegin());
-
-            if (new Date().after(booking.getEnd())) {
-                begin.add(Calendar.DAY_OF_WEEK, 1);
-                if (Validator.verifyWeekend(begin)) {
+            if (booking.getCheckOut().after(booking.getEnd())) {
+                if (Validator.verifyWeekend(end))
                     dailiesPrice += Prices.ROOM_WEEKEND.getPrice();
-                } else {
+                else
                     dailiesPrice += Prices.ROOM_WEEKDAY.getPrice();
-                }
             }
 
-            if (!productsDTO.getProducts().isEmpty()) {
-                productsDTO.getProducts().forEach((k, v) -> {
-                    var price = Prices.valueOf(k.toUpperCase());
-                    productsPrice[0] += price.getPrice() * (int) v;
-                });
-            }
+            Double productsPrice = getProductsPrice(products);
 
             bill.setBooking(booking);
             bill.setDailiesPrice(dailiesPrice);
-            bill.setProductsPrice(productsPrice[0]);
+            bill.setProductsPrice(productsPrice);
             bill.setGaragePrice(garagePrice);
             bill.setStatus("waiting");
-            bill.setTotal(dailiesPrice + garagePrice + productsPrice[0]);
-            bill.setProducts(productsDTO.getProducts());
+            bill.setTotal(dailiesPrice + garagePrice + productsPrice);
+            bill.setProducts(products);
+            bill.setCreationDate();
 
-            return save(bill);
+            billRepository.save(bill);
+            return bill;
 
         } catch (PersistenceException pe) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error Checking out", pe);
         }
     }
 
-    public Bill save(BillDTO billDTO) {
-        var bill = Bill.create(billDTO);
-        bill.setCreationDate();
-        billRepository.save(bill);
+    public List<Bill> findAll() {
+        try {
+            return billRepository.findAll();
+        } catch (PersistenceException pe) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error Listing Bills", pe);
+        }
+    }
 
-        return bill;
+    public Bill findById(UUID billId) {
+        try {
+            Optional<Bill> bill = billRepository.findById(billId);
+            if (bill.isEmpty())
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bill Not Found");
+
+            return bill.get();
+
+        } catch (PersistenceException pe) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error Listing Bills", pe);
+        }
+    }
+
+    public Bill findByBooking(UUID bookingId) {
+        try {
+            Optional<Booking> booking = bookingRepository.findById(bookingId);
+
+            if (booking.isEmpty())
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not Found");
+
+            Optional<Bill> bill = billRepository.findByBooking(booking.get());
+
+            if (bill.isEmpty())
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bill not Found");
+
+            return bill.get();
+        } catch (PersistenceException pe) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error loading bill", pe);
+        }
+    }
+
+    private Double getProductsPrice(Map<String, Integer> products) {
+        final Double[] productsPrice = {0.0};
+        if (!products.isEmpty()) {
+            products.forEach((k, v) -> {
+                var price = Prices.valueOf(k.toUpperCase());
+                productsPrice[0] += price.getPrice() * (int) v;
+            });
+        }
+
+        return productsPrice[0];
     }
 }

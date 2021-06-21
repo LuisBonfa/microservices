@@ -28,7 +28,7 @@ public class Bill extends Updatable {
 
     @Type(type = "jsonb")
     @Column(name="products_data", columnDefinition = "jsonb")
-    private Map<String, Object> products;
+    private Map<String, Integer> products;
 
     @Column(name="products_price")
     private Double productsPrice;
